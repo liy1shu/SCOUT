@@ -604,18 +604,37 @@
     (function () {
       /* Add entries as { src: '...', label: '...' } when videos are ready. */
       var simVideoData = {
-        slide_brick:  [],
-        pick_bar:     [],
-        push_bar:     [],
-        turn_faucet:  [],
-        open_box:     [],
-        open_doors:   [],
+        slide_brick:  [
+          { src: './static/videos/simslidebrick/2_steps.mp4', label: '2-Step Adaptation' },
+          { src: './static/videos/simslidebrick/3_steps.mp4', label: '3-Step Adaptation' },
+        ],
+        pick_bar:     [
+          { src: './static/videos/simpickbar/2_steps.mp4', label: '2-Step Adaptation' },
+          { src: './static/videos/simpickbar/4_steps.mp4', label: '4-Step Adaptation' },
+        ],
+        push_bar:     [
+          { src: './static/videos/simpushbar/2_steps.mp4', label: '2-Step Adaptation' },
+          { src: './static/videos/simpushbar/3_steps.mp4', label: '3-Step Adaptation' },
+        ],
+        turn_faucet:  [
+          { src: './static/videos/simturnfaucet/1_step.mp4',  label: '1-Step Adaptation' },
+          { src: './static/videos/simturnfaucet/2_steps.mp4', label: '2-Step Adaptation' },
+        ],
+        open_box:     [
+          { src: './static/videos/simopenbox/1_step.mp4',  label: '1-Step Adaptation' },
+          { src: './static/videos/simopenbox/2_steps.mp4', label: '2-Step Adaptation' },
+        ],
+        open_doors:   [
+          { src: './static/videos/simdoor/8983_link_1_1_adapt5.mp4',        label: 'Door 8983' },
+          { src: './static/videos/simdoor/9003_link_1_handle_2_adapt5.mp4', label: 'Door 9003' },
+        ],
       };
 
       var currentSimTask = 'slide_brick';
 
       function renderSimVideos() {
         var grid = document.getElementById('sim-videos-grid');
+        grid.setAttribute('data-task', currentSimTask);
         var vids = simVideoData[currentSimTask];
         if (!vids || vids.length === 0) {
           grid.innerHTML = '<p class="rw-empty-msg has-text-centered">Videos coming soon for this task.</p>';
