@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="SCOUT">
+  <meta name="keywords" content="Test-time Adaptation, Meta-Learning, Dynamics Model">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCOUT</title>
+
+  <style> 
+    .div-a{ float:left;width:49%;border:1px solid #000} 
+    .div-b{ float:left;width:49%;border:1px solid rgb(170, 13, 13)} 
+  </style> 
+  <style>
+    .img_columns {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 50vh; /* Adjust this to fit your needs */
+    }
+    .img-div-a, .img-div-b {
+      flex: 0 0 49%;
+      border: 1px solid;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .img-div-a {
+      border-color: #fff;
+      height: 30vh;
+    }
+    .img-div-b {
+      border-color: #fff;
+      height: 50vh;
+    }
+    .highlight {
+      color: red;
+    }
+  </style>
+  </head> 
+
+  <style>
+    .video-container {
+      display: flex;
+      justify-content: space-between;
+    }
+    .video-container video {
+      width: 48%; /* Adjust width as needed */
+      height: auto;
+    }
+  </style>
+
+  <style>
+    .video-container-three {
+      display: flex;
+      justify-content: space-between;
+    }
+    .video-container-three video {
+      width: 33%; /* Adjust width as needed */
+      height: auto;
+    }
+  </style>
+
+  <style>
+    .small_video-container {
+      display: flex;
+      justify-content: space-between;
+    }
+    .small_video-container video {
+      width: 28%; /* Adjust width as needed */
+      height: auto;
+    }
+  </style>
+
+  <style>
+    .swiper-slide img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+  </style>
+  <style>
+    .slide-content {
+      text-align: center;
+    }
+  
+    .slide-content img {
+      height: 300px;         /* Fixed height for all images */
+      width: 100%;           /* Full width of slide */
+      object-fit: contain;   /* Preserve aspect ratio and fit inside the box */
+      display: block;
+      margin: 0 auto;        /* Center the image horizontally */
+    }
+  
+    .caption {
+      margin-bottom: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #333;
+    }
+  </style>
+
+  <style>
+    .toggle-content {
+        display: none;
+        margin-top: 10px;
+    }
+
+    input[type="checkbox"] {
+        display: none;
+    }
+
+    .toggle-label {
+        cursor: pointer;
+        color: rgb(111, 17, 17);
+        text-decoration: bold;
+        display: flex;
+        align-items: center;
+    }
+
+    .toggle-label::before {
+        content: '▶';
+        display: inline-block;
+        margin-right: 5px;
+        transition: transform 0.3s ease;
+    }
+
+    input[type="checkbox"]:checked + .toggle-label::before {
+        transform: rotate(90deg);
+    }
+
+    input[type="checkbox"]:checked + .toggle-label + .toggle-content {
+        display: block;
+    }
+  </style>
+
+  <style>
+    ul.custom-list {
+      list-style-type: square;
+    }
+  </style>
+
+  <style>
+    /* ── Real-World Interactive Section ── */
+
+    /* Task tabs */
+    .rw-task-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 24px 0 16px;
+    }
+    .rw-task-btn {
+      padding: 8px 28px;
+      border-radius: 22px;
+      border: 2px solid #3273dc;
+      background: #fff;
+      color: #3273dc;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .rw-task-btn.is-active {
+      background: #3273dc;
+      color: #fff;
+    }
+
+    /* Bar selector wrapper */
+    .rw-bar-selector {
+      text-align: center;
+      margin: 28px auto;
+      max-width: 560px;
+    }
+    .rw-bar-hint {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 14px;
+      font-style: italic;
+    }
+    .rw-bar-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* The metal rod */
+    .rw-rod {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      height: 10px;
+      background: linear-gradient(to bottom, #aaa 0%, #e0e0e0 45%, #aaa 100%);
+      border-radius: 5px;
+      top: 50%;
+      transform: translateY(-60%);   /* shift up a bit so rod aligns with weight centres */
+    }
+
+    /* Individual position buttons */
+    .rw-pos-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .rw-pos-btn:hover .rw-weight-block {
+      opacity: 0.8;
+    }
+
+    /* The weight plate graphic */
+    .rw-weight-block {
+      width: 30px;
+      height: 60px;
+      background: #ccc;
+      border: 2px solid #999;
+      border-radius: 5px;
+      transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+    }
+    .rw-pos-btn.is-active .rw-weight-block {
+      background: #3273dc;
+      border-color: #1f5ab5;
+      box-shadow: 0 0 10px rgba(50, 115, 220, 0.45);
+    }
+
+    /* Position label under each weight */
+    .rw-mode-label {
+      margin-top: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      color: #555;
+      transition: color 0.2s;
+    }
+    .rw-pos-btn.is-active .rw-mode-label {
+      color: #3273dc;
+    }
+
+    /* Video grid */
+    .rw-videos-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 28px;
+      min-height: 120px;
+    }
+    .rw-video-item {
+      flex: 1 1 45%;
+      max-width: 48%;
+      text-align: center;
+    }
+    .rw-video-item video {
+      width: 100%;
+      border-radius: 8px;
+      display: block;
+    }
+    .rw-video-label {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+      font-size: 14px;
+    }
+    .rw-empty-msg {
+      color: #999;
+      padding: 40px 0;
+      font-style: italic;
+      width: 100%;
+    }
+  </style>
+
+  <style>
+    /* ── Simulation Demos Section ── */
+    .sim-task-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 24px 0 28px;
+    }
+    .sim-task-btn {
+      padding: 8px 22px;
+      border-radius: 22px;
+      border: 2px solid #3273dc;
+      background: #fff;
+      color: #3273dc;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .sim-task-btn.is-active {
+      background: #3273dc;
+      color: #fff;
+    }
+    .sim-task-btn:hover:not(.is-active) {
+      background: #eef3fc;
+    }
+  </style>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+</nav>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-2 publication-title">
+            Scouting the Dynamics Gap: Test-Time Policy Adaptation via Action-Outcome Feedback
+          </h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <!-- Anonymous Authors -->
+              <span class="author-block">
+                <!-- <a href="https://liy1shu.github.io/">Yishu Li</a>*<sup>1</sup>, -->
+                <a href="https://liy1shu.github.io/">Yishu Li*</a><sup>1</sup>,
+              </span>
+              <span class="author-block">
+                <a href="https://www.linkedin.com/in/liyuan-geng-120a65238">Liyuan Geng*</a><sup>1</sup>,
+              </span>
+              <span class="author-block">
+                <a href="https://shhmxy2.github.io/">Xinyi Mao*</a><sup>2</sup>,
+              </span>
+              <span class="author-block">
+                <a href="https://amburger66.github.io/">Amber Li</a><sup>1</sup>,
+              </span>
+              <span class="author-block">
+                <a href="https://davheld.github.io/">David Held</a><sup>1</sup>,
+              </span>
+            </span>
+          </div>
+          <div class="is-size-5 publication-authors">
+            <!-- <span class="author-block"><sup>*</sup>Equal Contribution</span><br> -->
+            <span class="author-block"><sup>1</sup>Robotics Institute, Carnegie Mellon University</span><br>
+            <span class="author-block"><sup>2</sup>Computer Science and Technology, Tsinghua University</span><br>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span style="font-weight: bold;">CoRL 2026</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+
+              <span class="link-block">
+                <a href="https://openreview.net/forum?id=FYNtpa7rwN"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+
+              <span class="link-block">
+                <a href="https://github.com/liy1shu/SCOUT.git"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code (Coming Soon)</span>
+                  </a>
+              </span>
+              
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <img id="teaser" src="./static/images/teaser.png"
+                type="image/jpg">
+      </img>
+      <h2 class="subtitle has-text-centered">
+        We present <b>SCOUT</b>, which uses a <u>S</u>hared belief latent to <u>C</u>ouple the policy with dynamics predictions to enable <u>O</u>utcome-driven policy <u>U</u>pdates at <u>T</u>est-time, enabling manipulation policies to adapt to different environment dynamics on the fly.
+      </h2>
+    </div>
+  </div>
+</section>
+
+
+<!-- Abstract. -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            While pretrained robotic policies exhibit impressive capabilities in controlled environments, the inherent unpredictability of the real world, including unobserved dynamic properties, requires these policies to rapidly adapt during deployment. Existing test-time adaptation methods typically rely on sparse scalar rewards, failing to exploit the rich geometric and dynamic feedback from the environment during physical interaction.
+          </p>
+          <p>
+            To address this challenge, we propose <b>SCOUT</b>, a dynamics-aware meta-learning framework that enables manipulation policies to rapidly adapt by continuously revising their internal beliefs about environment dynamics. Our approach couples an action-prediction policy with a forward dynamics model via a shared belief latent space. During meta-training, an inner loop updates this shared belief latent by minimizing the dynamics prediction error against the observed action outcome, while the outer loop optimizes the network for action selection. At deployment, this structure allows the agent to infer and adapt to unknown physical dynamics on the fly. By updating its latent belief based on action-outcome mismatches, the policy automatically adapts without risking catastrophic forgetting. 
+          </p>
+          <p>
+            We demonstrate that <b>SCOUT</b> significantly accelerates online adaptation across simulated manipulation benchmarks and achieves robust sim-to-real transfer in the real world.
+          </p>
+        </div>
+      </div>
+    </div>
+</section>
+<!--/ Abstract. -->
+
+<section class="section" id="real-world-demos">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <h2 class="title is-3" style="margin-top: 40px;">Real World Demos</h2>
+    </div>
+
+    <h2 class="subtitle has-text-centered">
+      We demonstrate SCOUT on real-world uneven bar pickup and push tasks.
+      SCOUT <b>adapts via action-outcome feedback</b> to different
+      <b>center of mass positions</b> along the bar.
+    </h2>
+
+    <!-- Task Tabs -->
+    <div class="rw-task-tabs">
+      <button class="rw-task-btn is-active" data-task="pickbar">Pick Bar</button>
+      <button class="rw-task-btn" data-task="pushbar">Push Bar</button>
+    </div>
+
+    <!-- Bar + Mode Selector -->
+    <div class="rw-bar-selector">
+      <p class="rw-bar-hint">Select weight position on the bar:</p>
+      <div class="rw-bar-wrapper">
+        <div class="rw-rod"></div>
+        <button class="rw-pos-btn is-active" data-mode="left">
+          <div class="rw-weight-block"></div>
+          <span class="rw-mode-label">Left</span>
+        </button>
+        <button class="rw-pos-btn" data-mode="middle">
+          <div class="rw-weight-block"></div>
+          <span class="rw-mode-label">Middle</span>
+        </button>
+        <button class="rw-pos-btn" data-mode="right">
+          <div class="rw-weight-block"></div>
+          <span class="rw-mode-label">Right</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Video Display -->
+    <div class="rw-videos-grid" id="rw-videos-grid"></div>
+  </div>
+
+  <script>
+    (function () {
+      var videoData = {
+        pickbar: {
+          left: [
+            { src: './static/videos/pickbar/left/left_2steps.mp4',  label: '2-Step Adaptation' },
+            { src: './static/videos/pickbar/left/left_3steps.mp4', label: '3-Step Adaptation' },
+          ],
+          middle: [
+            { src: './static/videos/pickbar/middle/middle_3steps.mp4',  label: '3-Step Adaptation' },
+            { src: './static/videos/pickbar/middle/middle_4steps.mp4', label: '4-Step Adaptation' },
+          ],
+          right:  [
+            { src: './static/videos/pickbar/right/right_2steps.mp4',  label: '2-Step Adaptation' },
+            { src: './static/videos/pickbar/right/right_4steps.mp4', label: '4-Step Adaptation' },
+          ],
+        },
+        pushbar: {
+          left:   [
+            { src: './static/videos/pushbar/left/left_2steps.mp4',  label: '2-Step Adaptation' },
+            { src: './static/videos/pushbar/left/left_5steps.mp4', label: '5-Step Adaptation' },
+          ],
+          middle: [
+            { src: './static/videos/pushbar/middle/middle_3steps.mp4',  label: '3-Step Adaptation' },
+            { src: './static/videos/pushbar/middle/middle_4steps.mp4', label: '4-Step Adaptation' },
+          ],
+          right:  [
+            { src: './static/videos/pushbar/right/right_1step.mp4',  label: '1-Step Success' },
+            { src: './static/videos/pushbar/right/right_3steps.mp4',  label: '3-Step Adaptation' },
+          ],
+        },
+      };
+
+      var currentTask = 'pickbar';
+      var currentMode = 'left';
+
+      function renderVideos() {
+        var grid = document.getElementById('rw-videos-grid');
+        var vids = videoData[currentTask][currentMode];
+        if (!vids || vids.length === 0) {
+          grid.innerHTML = '<p class="rw-empty-msg has-text-centered">Videos coming soon for this configuration.</p>';
+          return;
+        }
+        grid.innerHTML = vids.map(function (v) {
+          return '<div class="rw-video-item">' +
+            '<p class="rw-video-label">' + v.label + '</p>' +
+            '<video controls playsinline>' +
+              '<source src="' + v.src + '" type="video/mp4">' +
+            '</video>' +
+          '</div>';
+        }).join('');
+      }
+
+      document.querySelectorAll('.rw-task-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.rw-task-btn').forEach(function (b) { b.classList.remove('is-active'); });
+          btn.classList.add('is-active');
+          currentTask = btn.dataset.task;
+          renderVideos();
+        });
+      });
+
+      document.querySelectorAll('.rw-pos-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.rw-pos-btn').forEach(function (b) { b.classList.remove('is-active'); });
+          btn.classList.add('is-active');
+          currentMode = btn.dataset.mode;
+          renderVideos();
+        });
+      });
+
+      renderVideos();
+    })();
+  </script>
+</section>
+
+
+<!--Simulation Demos-->
+<section class="section" id="simulation-demos">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <h2 class="title is-3" style="margin-top: 40px;">Simulation Demos</h2>
+    </div>
+
+    <h2 class="subtitle has-text-centered">
+      SCOUT is evaluated across six simulated manipulation tasks with varying dynamics.
+      Select a task to view adaptation videos.
+    </h2>
+
+    <!-- Task Selector -->
+    <div class="sim-task-tabs">
+      <button class="sim-task-btn is-active" data-simtask="slide_brick">Slide Brick</button>
+      <button class="sim-task-btn" data-simtask="pick_bar">Pick Bar</button>
+      <button class="sim-task-btn" data-simtask="push_bar">Push Bar</button>
+      <button class="sim-task-btn" data-simtask="turn_faucet">Turn Faucet</button>
+      <button class="sim-task-btn" data-simtask="open_box">Open Box</button>
+      <button class="sim-task-btn" data-simtask="open_doors">Open Doors</button>
+    </div>
+
+    <!-- Video Display -->
+    <div class="rw-videos-grid" id="sim-videos-grid"></div>
+  </div>
+
+  <script>
+    (function () {
+      /* Add entries as { src: '...', label: '...' } when videos are ready. */
+      var simVideoData = {
+        slide_brick:  [],
+        pick_bar:     [],
+        push_bar:     [],
+        turn_faucet:  [],
+        open_box:     [],
+        open_doors:   [],
+      };
+
+      var currentSimTask = 'slide_brick';
+
+      function renderSimVideos() {
+        var grid = document.getElementById('sim-videos-grid');
+        var vids = simVideoData[currentSimTask];
+        if (!vids || vids.length === 0) {
+          grid.innerHTML = '<p class="rw-empty-msg has-text-centered">Videos coming soon for this task.</p>';
+          return;
+        }
+        grid.innerHTML = vids.map(function (v) {
+          return '<div class="rw-video-item">' +
+            '<p class="rw-video-label">' + v.label + '</p>' +
+            '<video controls playsinline>' +
+              '<source src="' + v.src + '" type="video/mp4">' +
+            '</video>' +
+          '</div>';
+        }).join('');
+      }
+
+      document.querySelectorAll('.sim-task-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.sim-task-btn').forEach(function (b) { b.classList.remove('is-active'); });
+          btn.classList.add('is-active');
+          currentSimTask = btn.dataset.simtask;
+          renderSimVideos();
+        });
+      });
+
+      renderSimVideos();
+    })();
+  </script>
+</section>
+<!--/Simulation Demos-->
+
+
+<!--Quantitative Results-->
+<section class="hero teaser">
+  <div class="columns is-centered has-text-centered">
+    <h2 class="title is-3", style="margin-top: 60px;">Quantitative Results</h2>
+  </div>
+
+  <!-- Swiper CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/swiper/swiper-bundle.min.css"
+  />
+
+  <!-- Swiper HTML Block -->
+  <div class="swiper mySwiper" style="width: 800px; margin: 20px auto;">
+    <div class="swiper-wrapper">
+      <div class="swiper-slide">
+        <div class="slide-content">
+          <p class="subtitle has-text-centered">Simulation: ISE Benchmark</p>
+          <img src="./static/images/ise_performance.png" alt="Slide 1" />
+        </div>
+      </div>
+      <div class="swiper-slide">
+        <div class="slide-content">
+          <p class="subtitle has-text-centered">Simulation: Ambiguous Door Benchmark</p>
+          <img src="./static/images/ambiguous_door.png" alt="Slide 2" />
+        </div>
+      </div>
+      <div class="swiper-slide">
+        <div class="slide-content">
+          <p class="subtitle has-text-centered">Real-World: Uneven Bar Pick / Push</p>
+          <img src="./static/images/realworld_stats.png" alt="Slide 3" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Optional navigation and pagination -->
+    <div class="swiper-pagination"></div>
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-button-next"></div>
+  </div>
+
+  <!-- Swiper JS -->
+  <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+  <!-- Swiper Initialization -->
+  <script>
+    var swiper = new Swiper(".mySwiper", {
+      loop: true,
+      autoplay: {
+        delay: 3000,
+        disableOnInteraction: false,
+      },
+      pagination: {
+        el: ".swiper-pagination",
+        clickable: true,
+      },
+      navigation: {
+        nextEl: ".swiper-button-next",
+        prevEl: ".swiper-button-prev",
+      },
+    });
+  </script>
+
+
+  <script>
+    function toggleLegend() {
+      const img = document.getElementById("legend");
+      img.style.display = img.style.display === "none" ? "block" : "none";
+    }
+  </script>
+
+
+</section>
+<!--Quantitative Results-->
+
+
+
+
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <h2 class="title is-3", style="margin-top: 60px;">Model Architecture</h2>
+    </div>
+    <div class="hero-body", style="margin-top: 20px;">
+      <img id="teaser" src="./static/images/model.png"
+                type="image/jpg">
+      </img>
+      <h2 class="subtitle has-text-centered", style="margin-top: 20px;">
+        <b>Overview of our test-time adaptation architecture.</b> Our framework is meta-trained end-to-end, utilizing an inner loop that adapts an initial belief q0 to qk via latent dynamics error minimization, which then modulates the outer loop's policy head via FiLM to predict actions.
+      </h2>
+    </div>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <!-- <a class="icon-link"
+         href="./static/videos/nerfies_paper.pdf">
+        <i class="fas fa-file-pdf"></i>
+      </a> -->
+      <a class="icon-link" class="external-link" disabled>
+        <i class="fab fa-github"></i>
+      </a>
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is licensed under a <a rel="license"
+                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
