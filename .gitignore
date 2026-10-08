@@ -4,8 +4,6 @@ __pycache__/
 .DS_Store
 
 # experiment outputs
-data/
-ckpts/*
 !ckpts/.gitkeep
 results/
 smoke/
@@ -15,4 +13,3 @@ wandb/
 
 # per-env generated MJCF (third_party/metaworld/.../envs/push_test), removed at exit
 third_party/metaworld/metaworld/envs/push_test/.*.xml
-!ckpts/*.pt
