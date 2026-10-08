@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scout"
+version = "1.0.0"
+description = "SCOUT: Scouting the Dynamics Gap - test-time policy adaptation via action-outcome feedback (CoRL 2026)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "torch>=2.0",
+    "tqdm",
+]
+
+[project.optional-dependencies]
+logging = ["wandb"]
+metaworld = ["gymnasium>=1.1", "mujoco>=3", "PyOpenGL", "open3d", "opencv-python", "matplotlib", "imageio[ffmpeg]"]
+door = ["pybullet", "scipy", "imageio[ffmpeg]", "opencv-python"]   # imageio/opencv: rollout videos
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+include = ["scout*"]

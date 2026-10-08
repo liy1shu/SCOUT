@@ -1,0 +1,6 @@
+graft metaworld/assets
+graft metaworld/assets_v2
+graft metaworld/envs/objects
+graft metaworld/envs/push_test
+graft metaworld/envs/textures
+global-exclude __pycache__ *.pyc

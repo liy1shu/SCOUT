@@ -1,0 +1,23 @@
+# Mirrors pyproject.toml; prefer `pip install -e ".[logging,metaworld,door]"` (see README).
+# Install torch for your CUDA version first, e.g.
+#   pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu121
+
+# Core (training / offline evaluation)
+numpy
+torch>=2.0
+tqdm
+wandb            # optional: pass --no-wandb to train.py to skip
+
+# ISE / Meta-World tasks (data collection + rollout)
+gymnasium>=1.1
+mujoco>=3
+PyOpenGL
+open3d
+opencv-python
+matplotlib
+imageio[ffmpeg]
+# plus the vendored Meta-World fork: pip install -e third_party/metaworld
+
+# Ambiguous-door task (PyBullet simulation is vendored in scout/envs/door)
+pybullet
+scipy

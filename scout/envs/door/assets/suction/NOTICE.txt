@@ -1,0 +1,6 @@
+The suction gripper URDFs and meshes in this directory (suction-base.urdf,
+suction-head.urdf, base.obj, mid.obj, head.obj, tip.obj) are taken from
+Google Research's "ravens" (https://github.com/google-research/ravens),
+ravens/environments/assets/ur5/suction, licensed under the Apache License 2.0.
+The only modification is that suction-base.urdf references its meshes by
+bare file name so they resolve relative to the URDF.
