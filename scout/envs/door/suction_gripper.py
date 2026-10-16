@@ -70,7 +70,10 @@ class FloatingSuctionGripper:
         tip_pos, tip_ori = p.getLinkState(self.body_id, 0, physicsClientId=self.client_id)[:2]
         T_tip_contact = p.multiplyTransforms(*p.invertTransform(tip_pos, tip_ori), contact_pos_on_A, tip_ori)
 
-        obj_pos, obj_ori = p.getLinkState(obj_id, contact_link, physicsClientId=self.client_id)[:2]
+        if contact_link == -1:   # touching the object base (getLinkState rejects -1)
+            obj_pos, obj_ori = p.getBasePositionAndOrientation(obj_id, physicsClientId=self.client_id)
+        else:
+            obj_pos, obj_ori = p.getLinkState(obj_id, contact_link, physicsClientId=self.client_id)[:2]
         T_obj_contact = p.multiplyTransforms(*p.invertTransform(obj_pos, obj_ori), contact_pos_on_A, tip_ori)
 
         self.contact_const = p.createConstraint(

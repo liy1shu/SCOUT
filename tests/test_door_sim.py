@@ -128,13 +128,16 @@ def test_collect_and_rollout():
         print(f"  suction pull: ok (joint angle {opened:.2f} rad after one pull)")
 
         np.random.seed(0)
-        traj, final_rel = collect.generate_trajectory(root, "door", "link_0", real_mode_id=0,
-                                                      history_len=1, evaluate_random_action_cnt=3)
+        for _ in range(5):   # a random history action may miss the panel -> None
+            traj, final_rel = collect.generate_trajectory(root, "door_link_0_1", "link_0", history_len=2,
+                                                          evaluate_random_action_cnt=4)
+            if traj is not None:
+                break
         assert traj is not None
         T = len(traj["pcds"])
         assert T == 2 and traj["obs_flows"].shape == (T, collect.N_PTS, 3)
         assert traj["points"].shape == (T, 3) and traj["directions"].shape == (T, 3)
-        assert len(traj["scores"]) == T and len(traj["evaluate"]["scores"]) == 3
+        assert len(traj["scores"]) == T and len(traj["evaluate"]["scores"]) == T + 4
         assert np.linalg.norm(traj["obs_flows"][-1][traj["masks"][-1]], axis=-1).max() > 0.01, \
             "correct action should move the door"
         print(f"  generate_trajectory: ok (final rel angle {final_rel:.2f})")

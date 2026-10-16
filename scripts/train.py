@@ -15,8 +15,9 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
-# Must precede the torch import (see scout/envs/metaworld/__init__.py).
-os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "max_split_size_mb:128")
+# Must precede the torch import (see scout/envs/metaworld/__init__.py). Expandable segments avoid the
+# sporadic segfaults in the second-order backward (gradient checkpointing) seen with a fragmented cache.
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 import torch  # noqa: E402
 

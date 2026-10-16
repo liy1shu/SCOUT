@@ -10,6 +10,7 @@ ISE / Meta-World tasks (one pickle of episodes):
 Ambiguous doors (raw per-worker pickles; run prepare_door_dataset.py afterwards):
     python scripts/collect_data.py --task door --pm-dir ~/datasets/failure_history_door/raw \
         --metadata metadata/multimodal_door.json --output-dir data/door
+    python scripts/prepare_door_dataset.py --raw-dir data/door/raw_pkls --out-dir data/door/train_val
 """
 
 import argparse
@@ -34,12 +35,14 @@ def main():
                         help="(door) split json with 'train-train' / 'test' object ids")
     parser.add_argument("--output-dir", type=str, default="data/door")
     parser.add_argument("--num-processes", type=int, default=16)
-    parser.add_argument("--traj-per-obj-train", type=int, default=100)
-    parser.add_argument("--traj-per-obj-test", type=int, default=20)
-    parser.add_argument("--max-trials-train", type=int, default=200)
-    parser.add_argument("--max-trials-test", type=int, default=50)
+    parser.add_argument("--traj-per-obj-train", type=int, default=200)
+    parser.add_argument("--traj-per-obj-test", type=int, default=0,
+                        help="(door) offline trajectories on the test objects (not needed: val is held out from train)")
+    parser.add_argument("--max-trials-train", type=int, default=400)
+    parser.add_argument("--max-trials-test", type=int, default=100)
     parser.add_argument("--random-action-num", type=int, default=10, help="(door) query actions per trajectory")
-    parser.add_argument("--history-len", type=int, default=-1, help="(door) H wrong attempts; -1 = random in [1, 8)")
+    parser.add_argument("--history-len", type=int, default=-1,
+                        help="(door) steps per trajectory; -1 = random, half in [1, 30] and half in [1, 9]")
     parser.add_argument("--max-objects", type=int, default=None, help="(door) only use the first N objects of each split (smoke tests)")
     args = parser.parse_args()
     cfg = load_config(args)
