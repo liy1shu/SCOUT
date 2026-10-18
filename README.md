@@ -128,10 +128,10 @@ under MuJoCo 3; run `TASKS=brick bash scripts/smoke_test.sh` in `scout-brick`.
 ## Pretrained checkpoints and door assets
 
 * **Checkpoints** for all six tasks (`pickbar.pt`, `pushbar.pt`, `faucet.pt`, `box.pt`,
-  `brick.pt`, `door.pt`): download them from **<CHECKPOINT_LINK>** into `ckpts/`.
+  `brick.pt`, `door.pt`): download them from [Google Drive](https://drive.google.com/drive/folders/1NK_6SHZfI5PTbkabH5GKCWxzVg7_pzfH?usp=drive_link) into `ckpts/`.
 * **Ambiguous-door assets** (door task only): PartNet-Mobility doors turned into pairs of
   variants that look identical when closed but open differently (hinge side / direction).
-  Either download the generated set from **<DOOR_ASSETS_LINK>** and extract it to
+  Either download the generated set from [Google Drive](https://drive.google.com/file/d/1T-7Hf7KgsaaH5ckRqQGsFR8GC_8-aIwV/view?usp=sharing) and extract it to
   `~/datasets/failure_history_door/raw/`, or build it yourself from
   [PartNet-Mobility](https://sapien.ucsd.edu/downloads). Download the door objects listed
   in `scripts/generate_door_assets.py` into `<pm-path>/raw/<id>/`, then:
@@ -194,7 +194,7 @@ Every task is a preset in `scout/configs.py` holding all camera-ready hyper-para
 |---|---|---|---|---|---|---|---|
 | `pick_bar` | Meta-World `pick-bar-v2` | 3-D grasp point | post-action cloud | 4 | 0.1 | 0.3 | |
 | `push_bar` | Meta-World `push-test-v2` | 3-D contact point | post-action cloud | 4 | 0.1 | 0.3 | |
-| `faucet` | Meta-World `faucet-{open,close}-v3` | 3-D push goal | post-action cloud | 2 | 0.1 | 0.0 | canonical (leak-free) query cloud |
+| `faucet` | Meta-World `faucet-{open,close}-v3` | 3-D push goal | post-action cloud | 2 | 0.1 | 0.0 | |
 | `box` | Meta-World `box-{open,slide}-v2` | 3-D post-grasp target | post-action cloud | 2 | 0.1 | 0.0 | |
 | `brick` | Meta-World `brick-slide-v2` | 3-D lift apex | post-action cloud | 4 | 0.1 | 0.3 | MuJoCo 2.3.7 (`scout-brick`) |
 | `door` | PyBullet / PartNet-Mobility | 6-D point + pull direction | per-point flow | 4 | 0.5 | 0.3 | flow-reconstruction loss, AdamW |
@@ -211,7 +211,7 @@ successful episode is stored with its failed attempts as the history.
 python scripts/collect_data.py --task pick_bar --num-episodes 200 --output data/pick_bar.pkl
 python scripts/collect_data.py --task push_bar --num-episodes 200 --output data/push_bar.pkl
 python scripts/collect_data.py --task faucet   --num-episodes 200 --output data/faucet.pkl
-python scripts/collect_data.py --task box      --num-episodes 500 --output data/box.pkl
+python scripts/collect_data.py --task box      --num-episodes 200 --output data/box.pkl
 python scripts/collect_data.py --task brick    --num-episodes 200 --output data/brick.pkl   # in scout-brick
 
 # doors: parallel trajectory generation, then split into per-trajectory files
@@ -316,13 +316,6 @@ tests/                  CPU tests: models/trainer (test_models.py), door simulat
   * every cloud is sub-sampled to 1200 points;
   * query and history are normalised by the query cloud's centre and radius;
   * with probability `augment_prob`, the ground-truth interaction is appended to the history.
-* **Turn Faucet** is ambiguous because of an invisible stop wall (`box_left` in
-  `third_party/metaworld/metaworld/assets_v2/sawyer_xyz/sawyer_faucet_{open,close}.xml`). It
-  sits at x = ∓0.12, flush with the handle, so pushing the handle the wrong way barely moves it.
-  The released checkpoint relies on this. With the wall further out (e.g. ±0.20), the handle
-  swings ~56° before it touches the wall, and adaptation no longer resolves the ambiguity.
-  To change the wall, edit the XML: MuJoCo builds its collision bounds when the model is
-  compiled, so moving the geom afterwards (`model.geom_pos`) makes collisions with it unreliable.
 * The pick-bar and push-bar environments generate their scene XML (the bar and its hidden
   centre of mass) when the env is constructed. Each env writes a private temporary file, so
   several envs can safely run in parallel.
@@ -336,11 +329,11 @@ tests/                  CPU tests: models/trainer (test_models.py), door simulat
   settles in a different joint configuration during the reset and the slide ends elsewhere. With
   the scripted expert's ground-truth tilt height, one attempt per episode, 60 episodes:
 
-  | backend | expert success | same outcome as the original, per episode |
-  |---|---|---|
-  | original (mujoco-py, MuJoCo 2.1) | 0.90 | — |
-  | this repo, MuJoCo 2.3.7 | 0.90 | 54 / 60 |
-  | this repo, MuJoCo 3.15 | 0.07 | 10 / 60 |
+  | backend | expert success |
+  |---|---|
+  | original (mujoco-py, MuJoCo 2.1) | 0.90 |
+  | this repo, MuJoCo 2.3.7 | 0.90 |
+  | this repo, MuJoCo 3.15 | 0.07 |
 
   MuJoCo 2.1.5, 2.2.2 and 2.3.7 reproduce the original reset state exactly; every 3.x version
   tested (3.0.1–3.15) does not. Hence the separate `scout-brick` environment. The other four tasks

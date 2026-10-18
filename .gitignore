@@ -9,6 +9,7 @@ results/
 smoke/
 data/
 ckpts/*/
+ckpts/*.pt
 *.tar.gz
 wandb/
 *.mp4
