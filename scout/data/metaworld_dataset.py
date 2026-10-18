@@ -1,4 +1,4 @@
-"""Dataset for the ISE / Meta-World tasks (pick bar, push bar, turn faucet, open box).
+"""Dataset for the ISE / Meta-World tasks (pick bar, push bar, turn faucet, open box, slide brick).
 
 Input format
 ------------

@@ -39,6 +39,9 @@ def main():
     parser.add_argument("--out-dir", default="results")
     parser.add_argument("--video-dir", default=None, help="directory for per-episode mp4s (default: <out-dir>/<task>/videos_ttt<k>)")
     parser.add_argument("--no-video", action="store_true", help="disable video recording (use for full sweeps)")
+    parser.add_argument("--seed-episodes", action="store_true",
+                        help="(ISE only) reproducible episodes: reseed numpy/torch with seed_base + i before "
+                             "episode i and seed the env with i (base: --set rollout.seed_base=..., default 10000)")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     # Door
     parser.add_argument("--pm-dir", default="~/datasets/failure_history_door/raw")
@@ -53,7 +56,8 @@ def main():
     out_dir = os.path.join(args.out_dir, cfg.name)
 
     for k in ttt_steps_list:
-        rcfg = cfg.override(**{"rollout.ttt_steps": k, "rollout.n_episodes": args.n_episodes}).rollout
+        rcfg = cfg.override(**{"rollout.ttt_steps": k, "rollout.n_episodes": args.n_episodes,
+                               "rollout.seed_episodes": True if args.seed_episodes else None}).rollout
         video_dir = None if args.no_video else (args.video_dir or os.path.join(out_dir, f"videos_ttt{k}"))
         if cfg.family == "metaworld":
             from scout.envs.metaworld import get_task

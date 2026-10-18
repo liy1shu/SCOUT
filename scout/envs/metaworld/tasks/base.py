@@ -66,6 +66,11 @@ class MetaWorldTask:
         """Extra stop condition for the collection loop (push bar caps attempts)."""
         return True
 
+    def counts_as_success(self, policy) -> bool:
+        """Whether an env success during collection ends the episode (brick only
+        accepts it on the expert's planned, correct attempt)."""
+        return True
+
     def stop_on_termination(self) -> bool:
         """Whether gym ``terminated``/``truncated`` ends a collection episode."""
         return False

@@ -21,7 +21,7 @@ from tqdm import tqdm
 from scout.configs import RolloutConfig
 from scout.data.pointcloud import sample_pcd
 from scout.envs.metaworld import viz
-from scout.envs.metaworld.pointcloud import FRAME_H, FRAME_W, camera_params
+from scout.envs.metaworld.pointcloud import FRAME_H, FRAME_W, camera_params, close_renderer
 from scout.envs.metaworld.tasks.base import MetaWorldTask
 from scout.inference import adapt_from_history, predict_target
 from scout.models.scout import SCOUT
@@ -112,7 +112,7 @@ def run_episode(task: MetaWorldTask, env_name: str, model: SCOUT, cfg: RolloutCo
         last_outcome = outcome_pcd
         obs = task.reset_object(base_env, env_name)
 
-    renderer.close()
+    close_renderer(renderer)
     env.close()
 
     ep_success = any(a["success"] for a in attempts)

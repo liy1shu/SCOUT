@@ -13,6 +13,7 @@ _MODULES = {
     "push_bar": ("scout.envs.metaworld.tasks.push_bar", "PushBarTask"),
     "faucet": ("scout.envs.metaworld.tasks.faucet", "FaucetTask"),
     "box": ("scout.envs.metaworld.tasks.box", "BoxTask"),
+    "brick": ("scout.envs.metaworld.tasks.brick", "BrickTask"),
 }
 TASK_NAMES = tuple(_MODULES)
 

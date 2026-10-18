@@ -67,6 +67,22 @@ pip install -e third_party/metaworld
 `pip install -e .` alone (numpy, torch, tqdm) is enough to train on collected data.
 Only data collection and rollouts need the simulator extras.
 
+### 2b. Slide Brick: a second environment with MuJoCo 2.3.7
+
+Slide Brick only reproduces on MuJoCo ≤ 2.3.7, while the other four Meta-World tasks were
+trained on MuJoCo 3 (see [Notes on this release](#notes-on-this-release)). Its collection and
+rollouts therefore run in a copy of the environment above with MuJoCo pinned to 2.3.7; the
+code is the same. Training needs no simulator and works in either environment.
+
+```bash
+conda create --clone scout -n scout-brick -y
+conda activate scout-brick
+pip install mujoco==2.3.7   # pip warns that metaworld requires mujoco>=3.0.0: expected, ignore it
+python scripts/diag_render.py --env brick-slide-v2   # must print PASS
+```
+
+Under MuJoCo ≥ 3 the brick task refuses to start rather than silently produce wrong numbers.
+
 ### 3. Check the installation
 
 ```bash
@@ -77,7 +93,8 @@ python tests/test_door_sim.py    # PyBullet door simulation on a synthetic two-m
 
 Optionally, `TASKS="pick_bar box" bash scripts/smoke_test.sh` runs a tiny version of
 data collection → training → rollout end to end (~3 min for all four Meta-World tasks; outputs in `./smoke`).
-The door part of the smoke test needs the door assets (see below).
+The door part of the smoke test needs the door assets (see below). The brick part is skipped
+under MuJoCo 3; run `TASKS=brick bash scripts/smoke_test.sh` in `scout-brick`.
 
 ### Troubleshooting
 
@@ -99,6 +116,10 @@ The door part of the smoke test needs the door assets (see below).
 * **`ModuleNotFoundError: metaworld.policies.sawyer_push_test_v2_policy` or unknown env
   `pick-bar-v2`.** Upstream Meta-World is installed instead of the fork:
   `pip uninstall metaworld && pip install -e third_party/metaworld`.
+* **`diag_render.py` prints FAIL in `scout-brick` for any env other than `brick-slide-v2`.**
+  Expected: MuJoCo 2.3.7's segmentation rendering does not work on NVIDIA EGL (and its EGL
+  backend cannot use Mesa). The brick task does not need it: its point cloud is built from depth
+  renders. Run the other four tasks in `scout`.
 * **CUDA allocator assert during training.** The scripts set
   `PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128`, because `expandable_segments` triggers an
   allocator assert inside gradient-checkpointed double backward (seen on PyTorch 2.1).
@@ -106,8 +127,8 @@ The door part of the smoke test needs the door assets (see below).
 
 ## Pretrained checkpoints and door assets
 
-* **Checkpoints** for all five tasks (`pickbar.pt`, `pushbar.pt`, `faucet.pt`, `box.pt`,
-  `door.pt`): download them from **<CHECKPOINT_LINK>** into `ckpts/`.
+* **Checkpoints** for all six tasks (`pickbar.pt`, `pushbar.pt`, `faucet.pt`, `box.pt`,
+  `brick.pt`, `door.pt`): download them from **<CHECKPOINT_LINK>** into `ckpts/`.
 * **Ambiguous-door assets** (door task only): PartNet-Mobility doors turned into pairs of
   variants that look identical when closed but open differently (hinge side / direction).
   Either download the generated set from **<DOOR_ASSETS_LINK>** and extract it to
@@ -126,11 +147,17 @@ The door part of the smoke test needs the door assets (see below).
 ## Evaluating the pretrained models
 
 ```bash
-# Meta-World (ISE) tasks: mean attempts-to-success over 400 episodes, failed episodes count as 14
+# Meta-World (ISE) tasks: mean attempts-to-success over 800 episodes (pick bar, push bar, slide brick)
+# or 400 episodes (faucet, box); failed episodes count as 14
 python scripts/rollout.py --task pick_bar --ckpt ckpts/pickbar.pt --no-video
 python scripts/rollout.py --task push_bar --ckpt ckpts/pushbar.pt --no-video
 python scripts/rollout.py --task faucet   --ckpt ckpts/faucet.pt  --no-video
 python scripts/rollout.py --task box      --ckpt ckpts/box.pt     --no-video
+
+# Slide Brick: in the scout-brick environment (MuJoCo 2.3.7, see Installation 2b)
+conda activate scout-brick
+python scripts/rollout.py --task brick    --ckpt ckpts/brick.pt   --no-video
+conda activate scout
 
 # without test-time adaptation (proposals sampled from the mixture)
 python scripts/rollout.py --task pick_bar --ckpt ckpts/pickbar.pt --ttt-steps 0 --no-video
@@ -145,10 +172,11 @@ python scripts/rollout.py --task door --ckpt ckpts/door.pt --ttt-steps 5 1 0
 | Push Bar | 4.14 |
 | Turn Faucet | 1.54 |
 | Open Box | 1.83 |
+| Slide Brick | 3.37 |
 
 Door: success rate 0.83 / 0.97 with 1 / 5 inner steps.
 
-* A full 400-episode ISE evaluation takes roughly 10–15 minutes per task. Use `--n-episodes 20`
+* A full ISE evaluation takes roughly 10–15 minutes per 400 episodes. Use `--n-episodes 20`
   for a quick look. With few episodes the mean is noisy, because a failed episode counts as 14.
 * Drop `--no-video` to write one mp4 per episode to `results/<task>/videos_ttt<k>/`. Each frame
   shows the simulator next to the proposal weights, the predicted target and the attempt history.
@@ -168,6 +196,7 @@ Every task is a preset in `scout/configs.py` holding all camera-ready hyper-para
 | `push_bar` | Meta-World `push-test-v2` | 3-D contact point | post-action cloud | 4 | 0.1 | 0.3 | |
 | `faucet` | Meta-World `faucet-{open,close}-v3` | 3-D push goal | post-action cloud | 2 | 0.1 | 0.0 | canonical (leak-free) query cloud |
 | `box` | Meta-World `box-{open,slide}-v2` | 3-D post-grasp target | post-action cloud | 2 | 0.1 | 0.0 | |
+| `brick` | Meta-World `brick-slide-v2` | 3-D lift apex | post-action cloud | 4 | 0.1 | 0.3 | MuJoCo 2.3.7 (`scout-brick`) |
 | `door` | PyBullet / PartNet-Mobility | 6-D point + pull direction | per-point flow | 4 | 0.5 | 0.3 | flow-reconstruction loss, AdamW |
 
 Any field can be overridden on the command line with `--set section.field=value` (the section
@@ -183,6 +212,7 @@ python scripts/collect_data.py --task pick_bar --num-episodes 200 --output data/
 python scripts/collect_data.py --task push_bar --num-episodes 200 --output data/push_bar.pkl
 python scripts/collect_data.py --task faucet   --num-episodes 200 --output data/faucet.pkl
 python scripts/collect_data.py --task box      --num-episodes 500 --output data/box.pkl
+python scripts/collect_data.py --task brick    --num-episodes 200 --output data/brick.pkl   # in scout-brick
 
 # doors: parallel trajectory generation, then split into per-trajectory files
 python scripts/collect_data.py --task door --output-dir data/door --num-processes 16
@@ -196,6 +226,7 @@ python scripts/train.py --task pick_bar --data data/pick_bar.pkl
 python scripts/train.py --task push_bar --data data/push_bar.pkl
 python scripts/train.py --task faucet   --data data/faucet.pkl
 python scripts/train.py --task box      --data data/box.pkl
+python scripts/train.py --task brick    --data data/brick.pkl
 python scripts/train.py --task door     --data data/door/train_val
 ```
 
@@ -256,8 +287,9 @@ scout/
     evaluate.py         offline pre/post-adaptation NLL
     common.py           shared batch / reconstruction helpers
   envs/
-    metaworld/          ISE tasks: shared collect + rollout loops, per-task hooks in tasks/*.py,
-                        segmented point clouds (pointcloud.py), rollout videos (viz.py)
+    metaworld/          ISE tasks: shared collect + rollout loops, per-task hooks in tasks/*.py
+                        (pick_bar, push_bar, faucet, box, brick), segmented point clouds
+                        (pointcloud.py), rollout videos (viz.py)
     door/               ambiguous doors: self-contained PyBullet simulation (ported from HAVE),
                         trajectory generation (collect.py), closed-loop rollout, videos (viz.py)
 scripts/
@@ -297,8 +329,35 @@ tests/                  CPU tests: models/trainer (test_models.py), door simulat
 * The door simulation is a trimmed port of the HAVE (CoRL 2025) code base and its rpad /
   FlowBot3D dependencies. Its behaviour is unchanged (same gripper, approach, pull and analytic
   flow); only unused code paths and the trimesh / plotly dependencies were dropped.
-* Slide Brick from the ISE suite is not part of this release. Its environment remains in the
-  Meta-World fork but is unused.
+* **Slide Brick needs MuJoCo ≤ 2.3.7.** The brick is tilted up a ramp and released; it must
+  slide back and come to rest inside a 2 cm height window, and the right tilt height depends on
+  the hidden ramp friction (U(0.245, 0.395)). The checkpoint was trained in the original
+  mujoco-py (MuJoCo 2.1) Meta-World, and from MuJoCo 3.0 the dynamics of this task change: the arm
+  settles in a different joint configuration during the reset and the slide ends elsewhere. With
+  the scripted expert's ground-truth tilt height, one attempt per episode, 60 episodes:
+
+  | backend | expert success | same outcome as the original, per episode |
+  |---|---|---|
+  | original (mujoco-py, MuJoCo 2.1) | 0.90 | — |
+  | this repo, MuJoCo 2.3.7 | 0.90 | 54 / 60 |
+  | this repo, MuJoCo 3.15 | 0.07 | 10 / 60 |
+
+  MuJoCo 2.1.5, 2.2.2 and 2.3.7 reproduce the original reset state exactly; every 3.x version
+  tested (3.0.1–3.15) does not. Hence the separate `scout-brick` environment. The other four tasks
+  were trained on MuJoCo 3 and stay in `scout`.
+* The brick env, `brick-slide-v2`
+  (`third_party/metaworld/metaworld/envs/sawyer_brick_slide_ise_v2.py`), keeps three details of the
+  original Meta-World that differ from the v3 base class, scoped to this env only: the mocap weld
+  uses `torquescale = 1` (v3: 5); `step` builds the observation without the extra `mj_forward`
+  and observation clipping; and success means coming to rest at a height in (0.073, 0.093) m
+  after being lifted above 0.14 m. Its expert
+  (`metaworld/policies/sawyer_brick_slide_ise_policy.py`) is the original code. The fork's
+  `slide-brick-v2` is a different, unused variant of the task.
+* Brick point clouds: MuJoCo 2.3.7's segmentation render is broken on NVIDIA EGL, so the brick
+  mask is taken from depth instead (pixels where a brick-only depth render matches the
+  full-scene one), followed by the original 3×3 median filter. Against the original clouds at
+  identical states: mean Chamfer distance 0.04 mm and max-radius difference ≤ 0.5 mm. The
+  original drops one pixel row where the brick touches the ramp, which moves the centre by ~1 mm.
 
 ## Citation
 

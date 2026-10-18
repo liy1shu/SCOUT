@@ -193,7 +193,8 @@ def name_in(obj, name: str) -> bool:
 # Registry — hyper-parameters of the camera-ready experiments
 # ─────────────────────────────────────────────────────────────────────────────
 def _ise(name: str, *, k: int, history_dropout: float, epochs: int,
-         num_workers: int = 4, max_steps_per_attempt: int = 500) -> TaskConfig:
+         num_workers: int = 4, max_steps_per_attempt: int = 500,
+         n_episodes: int = 400) -> TaskConfig:
     """Shared settings of the ISE / Meta-World tasks."""
     return TaskConfig(
         name=name,
@@ -205,21 +206,25 @@ def _ise(name: str, *, k: int, history_dropout: float, epochs: int,
                           history_dropout=history_dropout, sigma=0.1,
                           optimizer="adam", weight_decay=0.0, grad_clip=1.0,
                           num_workers=num_workers),
-        rollout=RolloutConfig(n_episodes=400, max_attempts=14, ttt_steps=1,
+        rollout=RolloutConfig(n_episodes=n_episodes, max_attempts=14, ttt_steps=1,
                               max_steps_per_attempt=max_steps_per_attempt),
     )
 
 
 TASKS: Dict[str, TaskConfig] = {
     # Continuous hidden parameter (bar centre of mass): K = 4, history dropout.
-    "pick_bar": _ise("pick_bar", k=4, history_dropout=0.3, epochs=2000),
-    "push_bar": _ise("push_bar", k=4, history_dropout=0.3, epochs=1000),
+    "pick_bar": _ise("pick_bar", k=4, history_dropout=0.3, epochs=2000, n_episodes=800),
+    "push_bar": _ise("push_bar", k=4, history_dropout=0.3, epochs=1000, n_episodes=800),
     # Binary tasks: K = 2 and no history dropout (dropping the history lets
     # the policy collapse to a q-insensitive solution on a two-mode task).
     "faucet": _ise("faucet", k=2, history_dropout=0.0, epochs=2000,
                    num_workers=0, max_steps_per_attempt=300),
     "box": _ise("box", k=2, history_dropout=0.0, epochs=2000,
                 max_steps_per_attempt=300),
+    # Hidden ramp friction (continuous): K = 4, history dropout.  Needs
+    # MuJoCo <= 2.3.7 (scout-brick environment, see README).
+    "brick": _ise("brick", k=4, history_dropout=0.3, epochs=900,
+                  max_steps_per_attempt=600, n_episodes=800),
     # Ambiguous articulated doors: 6-D action, flow outcome, reconstruction loss.
     "door": TaskConfig(
         name="door",

@@ -92,6 +92,24 @@ def get_point_cloud(env, renderer, object_bodies: Iterable[str], grey_filter: bo
     return robot_points, robot_colors, object_points, object_colors
 
 
+def close_renderer(renderer) -> None:
+    """``mujoco.Renderer.close``.  MuJoCo 2.3.7 (brick env) has no ``close`` and does not
+    reliably free the GL context on garbage collection, which exhausts EGL after a few
+    hundred episodes; free its contexts explicitly."""
+    close = getattr(renderer, "close", None)
+    if close is not None:
+        close()
+        return
+    gl = getattr(renderer, "_gl_context", None)
+    if gl is not None:
+        gl.make_current()
+        mjr = getattr(renderer, "_mjr_context", None)
+        if mjr is not None:
+            mjr.free()
+        gl.free()
+        renderer._gl_context = None
+
+
 def camera_params(base_env, camera_name="corner", width=FRAME_W, height=FRAME_H) -> dict:
     """Pinhole parameters used to project world points onto rendered frames."""
     model, data = base_env.model, base_env.data

@@ -16,7 +16,7 @@ from typing import List, Optional
 import mujoco
 from tqdm import tqdm
 
-from scout.envs.metaworld.pointcloud import FRAME_H, FRAME_W
+from scout.envs.metaworld.pointcloud import FRAME_H, FRAME_W, close_renderer
 from scout.envs.metaworld.tasks.base import MetaWorldTask
 
 
@@ -34,7 +34,7 @@ def collect_episode(task: MetaWorldTask, env_name: str, max_steps: int = 50000) 
 
     attempts: List[dict] = []
     pending = None
-    done, step = False, 0
+    done, step, success = False, 0, False
 
     while not done and step < max_steps and task.collection_may_continue(policy):
         a = policy.get_adaptive_action(obs)
@@ -56,15 +56,15 @@ def collect_episode(task: MetaWorldTask, env_name: str, max_steps: int = 50000) 
             policy.attempt_done = False
             obs = task.reset_object(base_env, env_name)
 
-        done = int(info["success"]) == 1 or (task.stop_on_termination() and (terminated or truncated))
+        success = int(info["success"]) == 1 and task.counts_as_success(policy)
+        done = success or (task.stop_on_termination() and (terminated or truncated))
 
-    success = int(info.get("success", 0)) == 1
     if success and pending is not None:            # outcome of the final, successful attempt
         pts, clr = task.object_cloud(env, renderer)
         pending["outcome_pc"], pending["outcome_colors"] = pts, clr
         attempts.append(pending)
 
-    renderer.close()
+    close_renderer(renderer)
     env.close()
 
     if not success or len(attempts) == 0:

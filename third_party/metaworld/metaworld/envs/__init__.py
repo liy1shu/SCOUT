@@ -24,6 +24,7 @@ from metaworld.envs.sawyer_pick_bar_v2 import SawyerPickBarEnvV2
 from metaworld.envs.sawyer_box_open_v2 import SawyerBoxOpenEnvV2
 from metaworld.envs.sawyer_box_slide_v2 import SawyerBoxSlideEnvV2
 from metaworld.envs.sawyer_brick_slide_v2 import SawyerBrickSlideEnvV2
+from metaworld.envs.sawyer_brick_slide_ise_v2 import SawyerBrickSlideIseEnvV2
 from metaworld.envs.sawyer_faucet_close_v3 import SawyerFaucetCloseEnvV3
 from metaworld.envs.sawyer_faucet_open_v3 import SawyerFaucetOpenEnvV3
 from metaworld.envs.sawyer_hammer_v3 import SawyerHammerEnvV3
@@ -81,6 +82,7 @@ __all__ = [
     "SawyerBoxOpenEnvV2",
     "SawyerBoxSlideEnvV2",
     "SawyerBrickSlideEnvV2",
+    "SawyerBrickSlideIseEnvV2",
     "SawyerFaucetCloseEnvV3",
     "SawyerFaucetOpenEnvV3",
     "SawyerHammerEnvV3",

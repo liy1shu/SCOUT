@@ -4,6 +4,7 @@
 #
 #   bash scripts/smoke_test.sh                 # all tasks
 #   TASKS="pick_bar faucet" bash scripts/smoke_test.sh
+#   TASKS=brick bash scripts/smoke_test.sh     # in the scout-brick env (MuJoCo 2.3.7)
 #   DOOR_PM_DIR=~/datasets/failure_history_door/raw bash scripts/smoke_test.sh
 #
 # Outputs go to $OUT (default ./smoke) and are safe to delete afterwards.
@@ -11,7 +12,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 OUT=${OUT:-./smoke}
-TASKS=${TASKS:-"pick_bar push_bar faucet box door"}
+TASKS=${TASKS:-"pick_bar push_bar faucet box brick door"}
 DOOR_PM_DIR=${DOOR_PM_DIR:-~/datasets/failure_history_door/raw}
 DOOR_META=${DOOR_META:-metadata/multimodal_door.json}
 N_COLLECT=${N_COLLECT:-6}        # ISE episodes to collect per task
@@ -25,8 +26,14 @@ echo "== unit tests =="
 python tests/test_models.py
 python tests/test_door_sim.py
 
+MUJOCO_MAJOR=$(python -c "import mujoco; print(mujoco.__version__.split('.')[0])")
+
 for task in $TASKS; do
   echo; echo "================ $task ================"
+  if [ "$task" = "brick" ] && [ "$MUJOCO_MAJOR" -ge 3 ]; then
+    echo "skipped: brick needs MuJoCo <= 2.3.7; run TASKS=brick bash scripts/smoke_test.sh in the scout-brick env"
+    continue
+  fi
   if [ "$task" != "door" ]; then
     python scripts/collect_data.py --task "$task" --num-episodes "$N_COLLECT" --output "$OUT/data/$task.pkl"
     python scripts/train.py --task "$task" --data "$OUT/data/$task.pkl" --save-dir "$OUT/ckpts" \
